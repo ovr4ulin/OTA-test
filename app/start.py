@@ -10,7 +10,7 @@ while True:
     flash.on()
     time.sleep(0.5)
     flash.off()
-    print("Hola Mati")
+    print("Chau Mati")
     time.sleep(2)
     flash.on()
     time.sleep(2)
