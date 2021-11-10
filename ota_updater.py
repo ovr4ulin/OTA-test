@@ -1,5 +1,6 @@
 import os, gc
-from .httpclient import HttpClient
+from time import sleep
+from httpclient import HttpClient
 
 class OTAUpdater:
     """
@@ -77,11 +78,26 @@ class OTAUpdater:
         (current_version, latest_version) = self._check_for_new_version()
         if latest_version > current_version:
             print('Updating to version {}...'.format(latest_version))
+            import printer_controller
+            print_controller = printer_controller.PrinterController()
+            sleep(1)
+            print_controller.send_command("M198 A\n")
+            sleep(0.1)
+            print_controller.send_command("M198 A\n")
+            sleep(0.1)
+            print_controller.send_command("M198 A\n")
             self._create_new_version_file(latest_version)
             self._download_new_version(latest_version)
             self._copy_secrets_file()
             self._delete_old_version()
             self._install_new_version()
+            sleep(0.1)
+            print_controller.send_command("M198 D\n")
+            sleep(0.1)
+            print_controller.send_command("M198 D\n")
+            sleep(0.1)
+            print_controller.send_command("M198 D\n")
+            sleep(0.1)
             return True
         
         return False
