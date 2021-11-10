@@ -14,6 +14,7 @@ class OTAUpdater:
         self.github_src_dir = '' if len(github_src_dir) < 1 else github_src_dir.rstrip('/') + '/'
         self.module = module.rstrip('/')
         self.main_dir = main_dir
+        self.old_main_dir = "{}_old".format(main_dir)
         self.new_version_dir = new_version_dir
         self.secrets_file = secrets_file
 
@@ -89,8 +90,9 @@ class OTAUpdater:
             self._create_new_version_file(latest_version)
             self._download_new_version(latest_version)
             self._copy_secrets_file()
-            self._delete_old_version()
+            self._rename_old_version()
             self._install_new_version()
+            self._delete_old_version()
             sleep(0.1)
             print_controller.send_command("M198 D\n")
             sleep(0.1)
@@ -177,10 +179,19 @@ class OTAUpdater:
             self._copy_file(fromPath, toPath)
             print('Copied secrets file from {} to {}'.format(fromPath, toPath))
 
+    def _rename_old_version(self):
+        print('Renaming old version to {} ...'.format(self.modulepath(self.old_main_dir)))
+        if self._os_supports_rename():
+            os.rename(self.modulepath(self.main_dir), self.modulepath(self.old_main_dir))
+        else:
+            self._copy_directory(self.modulepath(self.main_dir), self.modulepath(self.old_main_dir))
+            self._rmtree(self.modulepath(self.main_dir))
+        print('Renamed old version to {} ...'.format(self.modulepath(self.old_main_dir)))
+
     def _delete_old_version(self):
-        print('Deleting old version at {} ...'.format(self.modulepath(self.main_dir)))
-        self._rmtree(self.modulepath(self.main_dir))
-        print('Deleted old version at {} ...'.format(self.modulepath(self.main_dir)))
+        print('Deleting old version at {} ...'.format(self.modulepath(self.old_main_dir)))
+        self._rmtree(self.modulepath(self.old_main_dir))
+        print('Deleted old version at {} ...'.format(self.modulepath(self.old_main_dir)))
 
     def _install_new_version(self):
         print('Installing new version at {} ...'.format(self.modulepath(self.main_dir)))
