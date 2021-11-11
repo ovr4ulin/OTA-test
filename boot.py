@@ -28,12 +28,12 @@ def connectToWifiAndUpdate():
 
 def boot():
     # Actualizo el firmware por OTA si es que hay una nueva version
-    connectToWifiAndUpdate() 
+    # connectToWifiAndUpdate() 
     # Actualizo el firmware por SD
     import app.firmware_updater_FSM as firmware_updater_FSM
-    import app.current.main as main
     firmware_updater_FSM.start()
     # Inicializo el firmware
+    import app.current.main as main
     main.start_main()
 
 boot()

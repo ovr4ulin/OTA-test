@@ -18,7 +18,7 @@ class BootLogger:
     """
     
     def __init__(self):
-        self.LOG_NAME = 'boot_log.txt'
+        self.LOG_NAME = 'update_firmware_from_sd_log.txt'
         self.SRC_LOG = '/{}'.format(self.LOG_NAME)
         self.DST_LOG = '/sd/{}'.format(self.LOG_NAME)
         self.BUFFER_SIZE = 1000

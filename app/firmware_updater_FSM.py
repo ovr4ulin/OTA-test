@@ -24,9 +24,13 @@ LABEL_NEW_FILE = "new-file"
 SEPARATOR = "|"
 SD_MOUNT_PATH = "/sd"
 VERSION_FILE_NAME = "version.json"
+JOB_PATH = "/app"
 NEW_FOLDER_NAME = "new"
-NEW_FOLDER_PATH = "/{}".format(NEW_FOLDER_NAME)
-INSTRUCTIONS = "instructions.py"
+CURRENT_FOLDER_NAME = "current"
+OLD_FOLDER_NAME = "old"
+NEW_FOLDER_PATH = "{}/{}".format(JOB_PATH, NEW_FOLDER_NAME)
+CURRENT_FOLDER_PATH = "{}/{}".format(JOB_PATH, CURRENT_FOLDER_NAME)
+OLD_FOLDER_PATH = "{}/{}".format(JOB_PATH, OLD_FOLDER_NAME)
 
 ############################## STATES ##############################
 
@@ -46,7 +50,7 @@ class Flash:
         """
         Este metodo genera un parpadero en el flash que tiene una duracion de <self.succesful_flash_time> segundos.
         """
-
+        
         self.flash.on()
         time.sleep(self.succesful_flash_time)
         self.flash.off()
@@ -59,7 +63,6 @@ class Flash:
         self.flash.on()
         time.sleep(self.error_flash_time)
         self.flash.off()
-
 
 class CleanLog:
     """
@@ -83,12 +86,11 @@ class CleanLog:
         self.flash.successful()
         return SearchNewFirmwareOnSD()
 
-
 class SearchNewFirmwareOnSD:
     """
     Este estado monta la SD y busca un archivo que comience con <ENCODED_FIRMWARE_PREFIX> y termine con <ENCODED_FIRMWARE_EXTENSION>.
 
-    - Si encuentra el archivo: Pasa al estado <RemoveOldNewFolderAndOldInstructions>
+    - Si encuentra el archivo: Pasa al estado <RemoveOldNewFolder>
     - Si no encuentra el archivo: Pasa al estado <SendLog>
     - Si la SD no se encuentra puesta: Termina el procesamiento de la maquina de estado.
     """
@@ -126,19 +128,19 @@ class SearchNewFirmwareOnSD:
         try:
             self.files = None
             self.sd = machine.SDCard()
-            self.boot_logger.log_write(">>> Mounting SD card")
+            self.boot_logger.log_write(">>> Mounting SD card on {}".format(SD_MOUNT_PATH))
             uos.mount(self.sd, SD_MOUNT_PATH)
-            uos.chdir(SD_MOUNT_PATH)
-            self.boot_logger.log_write(">>> SD mounted flash_successfully")
-            self.files = uos.listdir()
-            self.boot_logger.log_write(">>> '/sd' files: " + str(self.files))
+            # uos.chdir(SD_MOUNT_PATH)
+            self.boot_logger.log_write(">>> SD mounted successfully")
+            self.files = uos.listdir(SD_MOUNT_PATH)
+            self.boot_logger.log_write(">>> '{}' files: ".format(SD_MOUNT_PATH) + str(self.files))
 
             firmware_name = self.get_firmware_name(self.files)
 
             if firmware_name:
                 self.boot_logger.log_write(">>> New firmware found on SD")
                 self.boot_logger.log_write(">>> Firmware name: '{}'".format(firmware_name))
-                result = RemoveOldNewFolderAndOldInstructions()
+                result = RemoveOldNewFolder()
             else:
                 self.boot_logger.log_write(">>> No new firmware found on SD")
                 result = SendLog()
@@ -151,10 +153,9 @@ class SearchNewFirmwareOnSD:
             self.flash.error()
             end_state_flag = True
 
-
-class RemoveOldNewFolderAndOldInstructions:
+class RemoveOldNewFolder:
     """
-    Este estado elimina en caso de existir <INSTRUCTIONS> y la carpeta <NEW_FOLDER_NAME>, del directorio '/'.
+    Este estado elimina en caso de existir la carpeta <NEW_FOLDER_NAME>, del directorio <PATH_JOB>.
 
     - Al finalizar: Pasa al estado <CreateNewFolder>
     """
@@ -185,20 +186,9 @@ class RemoveOldNewFolderAndOldInstructions:
         Este metodo sera ejecutado por la maquina de estados.
         """
 
-        self.boot_logger.log_write(">>> STATE: REMOVE OLD NEW FOLDER AND OLD INSTRUCTIONS")
-        uos.chdir('/')
-        self.files = uos.listdir()
-        self.boot_logger.log_write(">>> '/' files: " + str(self.files))
-
-        try:
-            if INSTRUCTIONS in self.files:
-                self.boot_logger.log_write(">>> '{}' was found".format(INSTRUCTIONS))
-                self.boot_logger.log_write(">>> Removing '{}'".format(INSTRUCTIONS))
-                uos.remove(INSTRUCTIONS)
-            else:
-                self.boot_logger.log_write(">>> '{}' was not found".format(INSTRUCTIONS))
-        except:
-            self.boot_logger.log_write(">>> Problem to remove '{}'".format(INSTRUCTIONS))
+        self.boot_logger.log_write(">>> STATE: REMOVE OLD NEW FOLDER")
+        self.files = uos.listdir(JOB_PATH)
+        self.boot_logger.log_write(">>> '{}' files: ".format(JOB_PATH) + str(self.files))
         
         try:
             if NEW_FOLDER_NAME in self.files:
@@ -213,34 +203,9 @@ class RemoveOldNewFolderAndOldInstructions:
         self.flash.successful() 
         return CreateNewFolder()
 
-
 class CreateNewFolder:
     """
     Este estado crea la carpeta <NEW_FOLDER_NAME> en el directorio <NEW_FOLDER_PATH>.
-
-    - Al finalizar: Pasa al estado <MoveNewFirmwareToNewFolder>
-    """
-
-    def __init__(self):
-        self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
-
-    def process(self):
-        """
-        Este metodo sera ejecutado por la maquina de estados.
-        """
-
-        self.boot_logger.log_write(">>> STATE: CREATE NEW FOLDER")
-        uos.mkdir(NEW_FOLDER_PATH)
-        self.boot_logger.log_write(">>> Make a '{}' folder in root".format(NEW_FOLDER_NAME))
-        
-        self.flash.successful()
-        return MoveNewFirmwareToNewFolder()
-        
-
-class MoveNewFirmwareToNewFolder:
-    """
-    Este estado mueve el firmware ubicado en <SD_MOUNT_PATH> a <NEW_FOLDER_PATH>
 
     - Al finalizar: Pasa al estado <UnzipFirmware>
     """
@@ -254,28 +219,12 @@ class MoveNewFirmwareToNewFolder:
         Este metodo sera ejecutado por la maquina de estados.
         """
 
-        self.boot_logger.log_write(">>> STATE: MOVE NEW FIRMWARE TO NEW FOLDER")
-        src_filename = '{}/{}'.format(SD_MOUNT_PATH, firmware_name)
-        dst_filename = '{}/{}'.format(NEW_FOLDER_PATH, firmware_name)
-        BUFFER_SIZE = 1000
-
-        self.boot_logger.log_write(">>> Moving new firmware from {SD_MOUNT_PATH} to {NEW_FOLDER_PATH}".format(
-            SD_MOUNT_PATH = SD_MOUNT_PATH, 
-            NEW_FOLDER_PATH = NEW_FOLDER_PATH
-        ))
-                
-        with open(src_filename, 'rb') as src_file:
-            with open(dst_filename, 'wb') as dst_file:
-                while True:
-                    buf = src_file.read(BUFFER_SIZE)
-                    if len(buf) > 0:
-                        dst_file.write(buf)
-                    if len(buf) < BUFFER_SIZE:
-                        break
-
+        self.boot_logger.log_write(">>> STATE: CREATE NEW FOLDER")
+        uos.mkdir(NEW_FOLDER_PATH)
+        self.boot_logger.log_write(">>> Make a '{}' folder".format(NEW_FOLDER_PATH))
+        
         self.flash.successful()
         return UnzipFirmware()
-        
 
 class UnzipFirmware:
     """
@@ -343,8 +292,8 @@ class UnzipFirmware:
 
         self.boot_logger.log_write(">>> STATE: UNZIP FIRMWARE")
 
-        with open('{NEW_FOLDER_PATH}/{firmware_name}'.format(
-            NEW_FOLDER_PATH = NEW_FOLDER_PATH, 
+        with open('{SD_MOUNT_PATH}/{firmware_name}'.format(
+            SD_MOUNT_PATH = SD_MOUNT_PATH, 
             firmware_name = firmware_name)) as file:
             
             path_file_writing = None
@@ -369,83 +318,92 @@ class UnzipFirmware:
 
                 if not line: break # Si es la ultima linea finalizo el ciclo while
 
-        self.flash.successful()
         self.boot_logger.log_write(">>> Successful decoding")
-        return MoveInstructionsToRoot()
-
-
-class MoveInstructionsToRoot:
-    """
-    Este estado mueve las instrucciones que se encuentran en <NEW_FOLDER_PATH> hacia el directorio '/'.
-
-    Al finalizar: Pasa al estado <GetFirmwareVersion>
-    """
-
-    def __init__(self):
-        self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
-
-    def process(self):
-        """
-        Este metodo sera ejecutado por la maquina de estados.
-        """
-
-        self.boot_logger.log_write(">>> STATE: MOVE INSTRUCTIONS TO ROOT")
-        self.boot_logger.log_write(">>> Moving instructions from {} to root".format(NEW_FOLDER_PATH))
-        src_filename = '{}/{}'.format(NEW_FOLDER_PATH, INSTRUCTIONS)
-        dst_filename = '/{}'.format(INSTRUCTIONS)
-        BUFFER_SIZE = 1000
-        
-        with open(src_filename, 'rb') as src_file:
-            with open(dst_filename, 'wb') as dst_file:
-                while True:
-                    buf = src_file.read(BUFFER_SIZE)
-                    if len(buf) > 0:
-                        dst_file.write(buf)
-                    if len(buf) < BUFFER_SIZE:
-                        break
-        
+        # uos.remove("{}/{}".format(NEW_FOLDER_PATH, firmware_name))
+        # self.boot_logger.log_write(">>> Removing firmware zip")
         self.flash.successful()
-        return GetFirmwareVersion()
+        return InstallNewFirmware()
 
+# class GetFirmwareVersion:
+#     """
+#     Este estado obtiene la version del firmware que ha sido actualizado del directorio
+#     {NEW_FOLDER_PATH}/{VERSION_FILE_NAME} y lo escribe en el log.
 
-class GetFirmwareVersion:
-    """
-    Este estado obtiene la version del firmware que ha sido actualizado del directorio
-    {NEW_FOLDER_PATH}/{VERSION_FILE_NAME} y lo escribe en el log.
+#     Al finalizar: Pasa al estado <ChangeExtensionFirmwareOnSD>
+#     """
 
-    Al finalizar: Pasa al estado <ChangeExtensionFirmwareOnSD>
-    """
+#     def __init__(self):
+#         self.flash = Flash()
+#         self.boot_logger = boot_logger.BootLogger()
 
-    def __init__(self):
-        self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+#     def process(self):
+#         """
+#         Este metodo sera ejecutado por la maquina de estados.
+#         """
 
-    def process(self):
-        """
-        Este metodo sera ejecutado por la maquina de estados.
-        """
+#         self.boot_logger.log_write(">>> STATE: GET FIRMWARE VERSION")
 
-        self.boot_logger.log_write(">>> STATE: GET FIRMWARE VERSION")
+#         with open('{NEW_FOLDER_PATH}/{VERSION_FILE_NAME}'.format(
+#             NEW_FOLDER_PATH = NEW_FOLDER_NAME,
+#             VERSION_FILE_NAME = VERSION_FILE_NAME
+#         )) as jsonfile:
 
-        with open('{NEW_FOLDER_PATH}/{VERSION_FILE_NAME}'.format(
-            NEW_FOLDER_PATH = NEW_FOLDER_NAME,
-            VERSION_FILE_NAME = VERSION_FILE_NAME
-        )) as jsonfile:
+#             json_version = json.load(jsonfile)
 
-            json_version = json.load(jsonfile)
+#             tag_version = json_version['tag_version']
+#             date_version = json_version['date_version']
+#             author = json_version['author']
 
-            tag_version = json_version['tag_version']
-            date_version = json_version['date_version']
-            author = json_version['author']
+#             self.boot_logger.log_write(">>> tag_version: {}".format(tag_version))
+#             self.boot_logger.log_write(">>> date_version: {}".format(date_version))
+#             self.boot_logger.log_write(">>> author: {}".format(author))
 
-            self.boot_logger.log_write(">>> tag_version: {}".format(tag_version))
-            self.boot_logger.log_write(">>> date_version: {}".format(date_version))
-            self.boot_logger.log_write(">>> author: {}".format(author))
-
-        self.flash.successful()
-        return ChangeExtensionFirmwareOnSD()
+#         self.flash.successful()
+#         return ChangeExtensionFirmwareOnSD()
             
+class InstallNewFirmware:
+    def __init__(self) -> None:
+        self.flash = Flash()
+        self.boot_logger = boot_logger.BootLogger()
+
+    def process(self):
+        self.boot_logger.log_write(">>> STATE: INSTALL NEW FIRMWARE")
+
+        self.boot_logger.log_write(">>> Renombrando {} a {}".format(CURRENT_FOLDER_PATH, OLD_FOLDER_PATH))
+        uos.rename(CURRENT_FOLDER_PATH, OLD_FOLDER_PATH)
+
+        self.boot_logger.log_write(">>> Renombrando {} a {}".format(NEW_FOLDER_PATH, CURRENT_FOLDER_PATH))
+        uos.rename(NEW_FOLDER_PATH, CURRENT_FOLDER_PATH)
+
+        return RemoveOldFirmware()
+
+class RemoveOldFirmware:
+    def __init__(self) -> None:
+        self.flash = Flash()
+        self.boot_logger = boot_logger.BootLogger()
+
+    def rmdir(self, dir):
+        """
+        Este metodo elimina de manera recursiva el directorio y todos los archivos/subdirectorios que el mismo contenga.
+
+        Args:
+            dir (str): Path de la carpeta que se desea eliminar.
+        """
+
+        for element in uos.listdir(dir):
+            if '.' in element: # es un archivo
+                self.boot_logger.log_write(">>> Removing file '{}/{}'".format(dir, element))
+                uos.remove('{}/{}'.format(dir, element))
+            else: # es una carpeta
+                self.rmdir('{}/{}'.format(dir, element))
+        self.boot_logger.log_write(">>> Removing directory '{}'".format(dir))
+        uos.rmdir(dir)
+
+    def process(self):
+        self.boot_logger.log_write(">>> STATE: Remove Old Firmware")
+        self.rmdir(OLD_FOLDER_PATH)
+
+        return ChangeExtensionFirmwareOnSD()
 
 class ChangeExtensionFirmwareOnSD:
     """
@@ -474,7 +432,6 @@ class ChangeExtensionFirmwareOnSD:
         
         self.flash.successful()
         return SendLog()
-
 
 class SendLog:
     """
@@ -506,7 +463,6 @@ class SendLog:
 
         self.flash.successful()
         end_state_flag = True 
-
 
 def start():
     global end_state_flag
