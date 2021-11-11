@@ -12,7 +12,7 @@ class Config:
 
     def __init__(self):
         
-        self.CONFIG_FILE = 'app/config.json'
+        self.CONFIG_FILE = 'app/current/config.json'
 
     # ------------------------- LOAD/SAVE CONFIG -------------------------
     

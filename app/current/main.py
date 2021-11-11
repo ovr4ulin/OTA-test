@@ -13,7 +13,7 @@ import json
 from app.current.mqtt_as import MQTTClient, config
 from app.current.PrinterController import PrinterController
 from app.current.config import Config
-from app import mqtt
+from app.current import mqtt
 from app.current.token import Token
 
 ####################### OBJETS INSTANCES #########################
@@ -105,7 +105,7 @@ def start_main():
         printer_contrl.get_information()
         printer_contrl.print_on_screen('Impresora conectada al servidor')
 
-        with open('/app/version.json') as jsonfile:
+        with open('/app/current/version.json') as jsonfile:
             version = json.load(jsonfile)['tag_version']
             await client.publish(mqtt.PUB_TOPIC_DATA, 'version:{}'.format(version), qos = 1)
 

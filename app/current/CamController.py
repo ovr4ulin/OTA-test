@@ -4,7 +4,7 @@ import time
 import ntptime
 
 from app.current import mqtt
-from app.current.config import Config
+from app.current.config import Config 
 
 class CamController:
     """

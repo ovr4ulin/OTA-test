@@ -1,4 +1,12 @@
+#------------------------------------------------------------------
+# PrinterController.py
+#------------------------------------------------------------------
+
+############################# IMPORT ##############################
+
 import machine
+
+######################## PRINTERCONTROLLER ########################
 
 class PrinterController(object):
     """
@@ -6,8 +14,6 @@ class PrinterController(object):
     """
 
     def __init__(self):
-        print(">>> ------------------ UART INIT -----------------")
-        
         self.__BAUDRATE = 115200                    
         self.__UART_NUMBER = 1
         self.__BITS = 8
@@ -45,6 +51,12 @@ class PrinterController(object):
             command (str): Cadena de texto para enviar a traves de la UART.
         """
 
-        written_chars = None
         written_chars = self.__UART.write(command)
-        print(">>> Written chars to UART = " + str(written_chars))
+        print(">>> Written chars to UART = {} / message = {}".format(written_chars, command))
+
+    def kill(self):
+        """
+        Cierra la comunicacion a traves de la UART
+        """
+
+        self.__UART.deinit()

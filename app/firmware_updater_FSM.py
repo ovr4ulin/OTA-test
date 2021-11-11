@@ -8,8 +8,7 @@ import machine
 import uos 
 import time
 import json
-import uzlib
-import boot_logger
+import app.boot_logger as boot_logger
 
 ######################## GLOBAL VARIABLES #########################
 

@@ -6,7 +6,7 @@
 # Various improvements contributed by Kevin Köck.
 
 #from Network_Credentials_Manager import SSID_Pass
-from app import Network_FSM
+from app.current import Network_FSM
 #from ssid_pass_handler import SSID_Pass
 
 import gc

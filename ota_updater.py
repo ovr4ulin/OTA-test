@@ -80,13 +80,13 @@ class OTAUpdater:
         if latest_version > current_version:
             print('Updating to version {}...'.format(latest_version))
             import printer_controller
-            print_controller = printer_controller.PrinterController()
+            prt_controller = printer_controller.PrinterController()
             sleep(1)
-            print_controller.send_command("M198 A\n")
+            prt_controller.send_command("M198 A\n")
             sleep(0.1)
-            print_controller.send_command("M198 A\n")
+            prt_controller.send_command("M198 A\n")
             sleep(0.1)
-            print_controller.send_command("M198 A\n")
+            prt_controller.send_command("M198 A\n")
             self._create_new_version_file(latest_version)
             self._download_new_version(latest_version)
             self._copy_secrets_file()
@@ -94,16 +94,16 @@ class OTAUpdater:
             self._install_new_version()
             self._delete_old_version()
             sleep(0.1)
-            print_controller.send_command("M198 D\n")
+            prt_controller.send_command("M198 D\n")
             sleep(0.1)
-            print_controller.send_command("M198 D\n")
+            prt_controller.send_command("M198 D\n")
             sleep(0.1)
-            print_controller.send_command("M198 D\n")
+            prt_controller.send_command("M198 D\n")
             sleep(0.1)
+            prt_controller.kill()
             return True
-        
+            
         return False
-
 
     @staticmethod
     def _using_network(ssid, password):
@@ -262,7 +262,6 @@ class OTAUpdater:
         except OSError as exc:
             if exc.args[0] == 17: 
                 pass
-
 
     def modulepath(self, path):
         return self.module + '/' + path if self.module else path

@@ -1,9 +1,13 @@
+#------------------------------------------------------------------
+# boot.py
+#------------------------------------------------------------------
+
+############################# IMPORT #############################
+
 def connectToWifiAndUpdate():
     import time, machine, network, gc, secrets
     time.sleep(1)
     print('Memory free', gc.mem_free())
-
-    import printer_controller
     from ota_updater import OTAUpdater
 
     sta_if = network.WLAN(network.STA_IF)
@@ -14,7 +18,7 @@ def connectToWifiAndUpdate():
         while not sta_if.isconnected():
             pass
     print('network config:', sta_if.ifconfig())
-    otaUpdater = OTAUpdater('https://github.com/ovr4ulin/OTA-test', main_dir='app', secrets_file="secrets.py")
+    otaUpdater = OTAUpdater('https://github.com/ovr4ulin/OTA-test', main_dir='app')
     hasUpdated = otaUpdater.install_update_if_available()
     if hasUpdated:
         machine.reset()
@@ -22,8 +26,14 @@ def connectToWifiAndUpdate():
         del(otaUpdater)
         gc.collect()
 
-def startApp():
-    import app.boot
+def boot():
+    # Actualizo el firmware por OTA si es que hay una nueva version
+    connectToWifiAndUpdate() 
+    # Actualizo el firmware por SD
+    import app.firmware_updater_FSM as firmware_updater_FSM
+    import app.current.main as main
+    firmware_updater_FSM.start()
+    # Inicializo el firmware
+    main.start_main()
 
-connectToWifiAndUpdate()
-startApp()
+boot()

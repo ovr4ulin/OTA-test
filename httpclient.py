@@ -44,7 +44,6 @@ class Response:
         finally:
             self.close()
 
-
 class HttpClient:
 
     def __init__(self, headers={}):
