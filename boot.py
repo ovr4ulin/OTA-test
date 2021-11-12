@@ -27,7 +27,8 @@ def connectToWifiAndUpdate():
     print('Memory free', gc.mem_free())
     from ota_updater import OTAUpdater
     connect_wifi()
-    otaUpdater = OTAUpdater('https://github.com/ovr4ulin/OTA-test', main_dir='app')
+    token = "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"
+    otaUpdater = OTAUpdater('https://github.com/ovr4ulin/OTA-test', headers={'Authorization': 'token {}'.format(token)}, main_dir='app')
     hasUpdated = otaUpdater.install_update_if_available()
     if hasUpdated:
         machine.reset()
