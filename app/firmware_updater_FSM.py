@@ -22,12 +22,17 @@ ENCODED_FIRMWARE_EXTENSION = ".txt"
 READY_FIRMWARE_EXTENSION = ".READY"
 LABEL_NEW_FILE = "new-file"
 SEPARATOR = "|"
-SD_MOUNT_PATH = "/sd"
-VERSION_FILE_NAME = "version.json"
-JOB_PATH = "/app"
+
+VERSION_FIRMWARE_FILE_NAME = "version.txt"
+VERSION_OTA_FILE_NAME = ".version"
 NEW_FOLDER_NAME = "new"
 CURRENT_FOLDER_NAME = "current"
 OLD_FOLDER_NAME = "old"
+
+JOB_PATH = "/app"
+SD_MOUNT_PATH = "/sd"
+VERSION_OTA_FILE_PATH = "{}/{}".format(JOB_PATH, VERSION_OTA_FILE_NAME)
+VERSION_FIRMWARE_FILE_PATH = "{}/{}/{}".format(JOB_PATH, CURRENT_FOLDER_NAME, VERSION_FIRMWARE_FILE_NAME) 
 NEW_FOLDER_PATH = "{}/{}".format(JOB_PATH, NEW_FOLDER_NAME)
 CURRENT_FOLDER_PATH = "{}/{}".format(JOB_PATH, CURRENT_FOLDER_NAME)
 OLD_FOLDER_PATH = "{}/{}".format(JOB_PATH, OLD_FOLDER_NAME)
@@ -64,6 +69,7 @@ class Flash:
         time.sleep(self.error_flash_time)
         self.flash.off()
 
+
 class CleanLog:
     """
     Este estado elimina el boot_log ubicado en el directorio '/', en el caso de que exista.
@@ -85,6 +91,7 @@ class CleanLog:
 
         self.flash.successful()
         return SearchNewFirmwareOnSD()
+
 
 class SearchNewFirmwareOnSD:
     """
@@ -153,6 +160,7 @@ class SearchNewFirmwareOnSD:
             self.flash.error()
             end_state_flag = True
 
+
 class RemoveOldNewFolder:
     """
     Este estado elimina en caso de existir la carpeta <NEW_FOLDER_NAME>, del directorio <PATH_JOB>.
@@ -203,6 +211,7 @@ class RemoveOldNewFolder:
         self.flash.successful() 
         return CreateNewFolder()
 
+
 class CreateNewFolder:
     """
     Este estado crea la carpeta <NEW_FOLDER_NAME> en el directorio <NEW_FOLDER_PATH>.
@@ -225,6 +234,7 @@ class CreateNewFolder:
         
         self.flash.successful()
         return UnzipFirmware()
+
 
 class UnzipFirmware:
     """
@@ -324,42 +334,6 @@ class UnzipFirmware:
         self.flash.successful()
         return InstallNewFirmware()
 
-# class GetFirmwareVersion:
-#     """
-#     Este estado obtiene la version del firmware que ha sido actualizado del directorio
-#     {NEW_FOLDER_PATH}/{VERSION_FILE_NAME} y lo escribe en el log.
-
-#     Al finalizar: Pasa al estado <ChangeExtensionFirmwareOnSD>
-#     """
-
-#     def __init__(self):
-#         self.flash = Flash()
-#         self.boot_logger = boot_logger.BootLogger()
-
-#     def process(self):
-#         """
-#         Este metodo sera ejecutado por la maquina de estados.
-#         """
-
-#         self.boot_logger.log_write(">>> STATE: GET FIRMWARE VERSION")
-
-#         with open('{NEW_FOLDER_PATH}/{VERSION_FILE_NAME}'.format(
-#             NEW_FOLDER_PATH = NEW_FOLDER_NAME,
-#             VERSION_FILE_NAME = VERSION_FILE_NAME
-#         )) as jsonfile:
-
-#             json_version = json.load(jsonfile)
-
-#             tag_version = json_version['tag_version']
-#             date_version = json_version['date_version']
-#             author = json_version['author']
-
-#             self.boot_logger.log_write(">>> tag_version: {}".format(tag_version))
-#             self.boot_logger.log_write(">>> date_version: {}".format(date_version))
-#             self.boot_logger.log_write(">>> author: {}".format(author))
-
-#         self.flash.successful()
-#         return ChangeExtensionFirmwareOnSD()
             
 class InstallNewFirmware:
     def __init__(self) -> None:
@@ -376,6 +350,7 @@ class InstallNewFirmware:
         uos.rename(NEW_FOLDER_PATH, CURRENT_FOLDER_PATH)
 
         return RemoveOldFirmware()
+
 
 class RemoveOldFirmware:
     def __init__(self) -> None:
@@ -403,7 +378,35 @@ class RemoveOldFirmware:
         self.boot_logger.log_write(">>> STATE: Remove Old Firmware")
         self.rmdir(OLD_FOLDER_PATH)
 
+        return SetFirmwareVersion()
+
+
+class SetFirmwareVersion:
+    """
+    Este estado obtiene la version del firmware que ha sido actualizado del directorio
+    {VERSION_FIRMWARE_FILE_PATH} y lo escribe en el archvio {VERSION_OTA_FILE_PATH}.
+
+    Al finalizar: Pasa al estado <ChangeExtensionFirmwareOnSD>
+    """
+
+    def __init__(self):
+        self.flash = Flash()
+        self.boot_logger = boot_logger.BootLogger()
+
+    def process(self):
+        """
+        Este metodo sera ejecutado por la maquina de estados.
+        """
+
+        self.boot_logger.log_write(">>> STATE: SET FIRMWARE VERSION")
+
+        with open(VERSION_FIRMWARE_FILE_PATH, 'r') as version_firmware_file:
+            with open(VERSION_OTA_FILE_PATH, 'w') as version_ota_file:
+                version_ota_file.write(version_firmware_file.readline())
+
+        self.flash.successful()
         return ChangeExtensionFirmwareOnSD()
+
 
 class ChangeExtensionFirmwareOnSD:
     """
@@ -433,6 +436,7 @@ class ChangeExtensionFirmwareOnSD:
         self.flash.successful()
         return SendLog()
 
+
 class SendLog:
     """
     Este estado envia el log generado que se encuentra en el directorio <SRC_LOG> definido en <boot_logger.py>,
@@ -461,6 +465,7 @@ class SendLog:
 
         self.flash.successful()
         end_state_flag = True 
+
 
 def start():
     global end_state_flag
