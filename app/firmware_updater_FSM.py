@@ -455,10 +455,8 @@ class SendLog:
         self.boot_logger.log_write(">>> STATE: SEND LOG")
         
         uos.chdir('/')
+        self.boot_logger.log_write(">>> Sending log to SD")
         self.boot_logger.write_log_on_sd()
-        self.boot_logger.log_clear()
-        self.boot_logger.log_write(">>> Removing log from ESP32")
-        self.boot_logger.log_write(">>> Unmounting SD")
         uos.umount(SD_MOUNT_PATH)
 
         self.flash.successful()
