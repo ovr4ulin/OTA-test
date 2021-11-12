@@ -105,9 +105,12 @@ def start_main():
         printer_contrl.get_information()
         printer_contrl.print_on_screen('Impresora conectada al servidor')
 
-        with open('/app/current/version.json') as jsonfile:
-            version = json.load(jsonfile)['tag_version']
-            await client.publish(mqtt.PUB_TOPIC_DATA, 'version:{}'.format(version), qos = 1)
+        try:
+            with open('/app/.version') as version_file:
+                version = version_file.readline()
+                await client.publish(mqtt.PUB_TOPIC_DATA, 'version:{}'.format(version), qos = 1)
+        except:
+            print("Problem to open version file")
 
         # ---------------------------- LOOP ----------------------------
 

@@ -51,8 +51,8 @@ def boot():
     try:
         #connectToWifiAndUpdate()
         print("Actualizando Ota")
-    except:
-        print("Error Ota")
+    except Exception as e:
+        print(e)
 
     # Actualizo el firmware por SD
     try:
@@ -66,7 +66,7 @@ def boot():
     try:
         import app.current.main as main
         main.start_main()
-    except:
-        print("Error main")
+    except Exception as e:
+        print(e)
 
 boot()
