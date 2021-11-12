@@ -22,7 +22,7 @@ def connect_wifi():
     print('network config:', sta_if.ifconfig())
 
 def connectToWifiAndUpdate():
-    import time, machine, gc, secrets
+    import time, machine, gc
     time.sleep(1)
     print('Memory free', gc.mem_free())
     from ota_updater import OTAUpdater
