@@ -1,14 +1,14 @@
 #------------------------------------------------------------------
-# PrinterController.py
+# uartcontroller.py
 #------------------------------------------------------------------
 
 ############################# IMPORT ##############################
 
 import machine
 
-######################## PRINTERCONTROLLER ########################
+######################### UARTCONTROLLER ##########################
 
-class PrinterController(object):
+class UartController(object):
     """
     Esta clase permite inicializar, recibir y enviar mensajes a traves de la UART.
     """

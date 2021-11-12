@@ -79,14 +79,14 @@ class OTAUpdater:
         (current_version, latest_version) = self._check_for_new_version()
         if latest_version > current_version:
             print('Updating to version {}...'.format(latest_version))
-            import printer_controller
-            prt_controller = printer_controller.PrinterController()
+            import uart_controller
+            uart = uart_controller.UartController()
             sleep(1)
-            prt_controller.send_command("M198 A\n")
+            uart.send_command("M198 A\n")
             sleep(0.1)
-            prt_controller.send_command("M198 A\n")
+            uart.send_command("M198 A\n")
             sleep(0.1)
-            prt_controller.send_command("M198 A\n")
+            uart.send_command("M198 A\n")
             self._create_new_version_file(latest_version)
             self._download_new_version(latest_version)
             self._copy_secrets_file()
@@ -94,13 +94,13 @@ class OTAUpdater:
             self._install_new_version()
             self._delete_old_version()
             sleep(0.1)
-            prt_controller.send_command("M198 D\n")
+            uart.send_command("M198 D\n")
             sleep(0.1)
-            prt_controller.send_command("M198 D\n")
+            uart.send_command("M198 D\n")
             sleep(0.1)
-            prt_controller.send_command("M198 D\n")
+            uart.send_command("M198 D\n")
             sleep(0.1)
-            prt_controller.kill()
+            uart.kill()
             return True
             
         return False
