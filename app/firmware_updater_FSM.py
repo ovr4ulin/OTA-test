@@ -7,8 +7,7 @@
 import machine
 import uos 
 import time
-import json
-import app.boot_logger as boot_logger
+import boot_logger as boot_logger
 
 ######################## GLOBAL VARIABLES #########################
 
@@ -79,7 +78,7 @@ class CleanLog:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         """
@@ -104,7 +103,7 @@ class SearchNewFirmwareOnSD:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def get_firmware_name(self, files):
         """
@@ -170,7 +169,7 @@ class RemoveOldNewFolder:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def rmdir(self, dir):
         """
@@ -221,7 +220,7 @@ class CreateNewFolder:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         """
@@ -246,7 +245,7 @@ class UnzipFirmware:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
     
     def process_new_file_line(self, line_new_file):
         """
@@ -338,7 +337,7 @@ class UnzipFirmware:
 class InstallNewFirmware:
     def __init__(self) -> None:
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         self.boot_logger.log_write(">>> STATE: INSTALL NEW FIRMWARE")
@@ -355,7 +354,7 @@ class InstallNewFirmware:
 class RemoveOldFirmware:
     def __init__(self) -> None:
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def rmdir(self, dir):
         """
@@ -391,7 +390,7 @@ class SetFirmwareVersion:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         """
@@ -417,7 +416,7 @@ class ChangeExtensionFirmwareOnSD:
 
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         """
@@ -447,7 +446,7 @@ class SendLog:
     
     def __init__(self):
         self.flash = Flash()
-        self.boot_logger = boot_logger.BootLogger()
+        self.boot_logger = boot_logger.BootLogger("sd_update_log.txt")
 
     def process(self):
         """
