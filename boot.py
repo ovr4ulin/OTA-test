@@ -40,9 +40,8 @@ def connectToWifiAndUpdate():
 def boot():
     # Actualizo el firmware por OTA si es que hay una nueva version
     try:
-        #connectToWifiAndUpdate()
-        pass
-
+        connectToWifiAndUpdate()
+        
     except Exception as e:
         import boot_logger
         print(e)
@@ -56,9 +55,8 @@ def boot():
 
     # Actualizo el firmware por SD
     try:
-        pass
-        #import app.firmware_updater_FSM as firmware_updater_FSM
-        #firmware_updater_FSM.start()
+        import app.firmware_updater_FSM as firmware_updater_FSM
+        firmware_updater_FSM.start()
 
     except Exception as e:
         import boot_logger
