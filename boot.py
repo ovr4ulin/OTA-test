@@ -4,11 +4,15 @@
 
 def connect_wifi():
     import network
-    import wifi
     from time import sleep
+    from wifi_controller import WifiController
+
+    controller = WifiController()
+    credentials = controller.get_credentials()
+
     sta_if = network.WLAN(network.STA_IF)
     if sta_if.isconnected(): return True
-    for SSID, PASSWORD in wifi.WIFI_CREDENTIALS:
+    for SSID, PASSWORD in credentials:
         if not SSID: continue
         if sta_if.isconnected(): break
         print('connecting to network...')
@@ -38,6 +42,23 @@ def connectToWifiAndUpdate():
         gc.collect()
 
 def boot():
+    # Cargo las credenciales wifi pasadas por SD
+    try:
+        import wifi_controller
+        controller = wifi_controller.WifiController()
+        controller.upload_wifi_credentials()
+    
+    except Exception as e:
+        import boot_logger
+        print(e)
+        ota_logger = boot_logger.BootLogger("upload_wifi_credentials.txt")
+        ota_logger.log_write_exception(e)
+
+        if connect_wifi():
+            ota_logger.send_log_through_http()
+        else:
+            ota_logger.write_log_on_sd()
+
     # Actualizo el firmware por OTA si es que hay una nueva version
     try:
         connectToWifiAndUpdate()
@@ -45,7 +66,7 @@ def boot():
     except Exception as e:
         import boot_logger
         print(e)
-        ota_logger = boot_logger.BootLogger("/ota_update_log.txt")
+        ota_logger = boot_logger.BootLogger("ota_update_log.txt")
         ota_logger.log_write_exception(e)
 
         if connect_wifi():
@@ -61,7 +82,7 @@ def boot():
     except Exception as e:
         import boot_logger
         print(e)
-        sd_update_logger = boot_logger.BootLogger("/sd_update_log.txt")
+        sd_update_logger = boot_logger.BootLogger("sd_update_log.txt")
         sd_update_logger.log_write_exception(e)
 
         if connect_wifi():
@@ -79,7 +100,7 @@ def boot():
         print(os.getcwd())
         import boot_logger
         print(e)
-        main_logger = boot_logger.BootLogger("/main_log.txt")
+        main_logger = boot_logger.BootLogger("main_log.txt")
         main_logger.log_write_exception(e)
 
         if connect_wifi():
