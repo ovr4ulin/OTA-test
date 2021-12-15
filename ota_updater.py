@@ -26,7 +26,7 @@ class OTAUpdater:
         self.old_main_dir = "{}_old".format(main_dir)
         self.new_version_dir = new_version_dir
         self.secrets_file = secrets_file
-        self.logger = boot_logger.BootLogger("/ota_update_log.txt")
+        self.logger = boot_logger.BootLogger("ota_update_log.txt")
 
     def __del__(self):
         self.http_client = None

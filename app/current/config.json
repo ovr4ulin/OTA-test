@@ -26,12 +26,12 @@
 "networks": 
     {"ssid_0": "TRIMAKER 3D 2.4GHz",
     "password_0": "tr1m4k3r42",
-    "ssid_1": "",
-    "password_1": "",
-    "ssid_2": "",
-    "password_2": "",
-    "ssid_3": "",
-    "password_3": "",
+    "ssid_1": "FAST_1111",
+    "password_1": "88888888",
+    "ssid_2": "FAST_2222",
+    "password_2": "88888888",
+    "ssid_3": "FAST_3333",
+    "password_3": "88888888",
     "ssid_4": "",
     "password_4": ""},
 
