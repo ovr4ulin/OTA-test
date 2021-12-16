@@ -41,7 +41,7 @@ UUID = Config().load_config('wifi_config')['MAC_address']
 
 ########################## PUBLISH TOPICS ##########################
 
-PUB_TOPIC_DATA = UUID + '/data'
+PUB_TOPIC_DATA = UUID + '/data_test'
 PUB_TOPIC_ACK_MARLIN = UUID + '/ack/marlin'  
 PUB_TOPIC_ACK_ESP = UUID + '/ack/esp'  
 PUB_TOPIC_ACK_PHOTO = UUID + '/ack/photo'  
