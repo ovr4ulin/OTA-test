@@ -45,28 +45,29 @@ class Flash:
     si todo ocurrio correctamente.
     """
     
-    def __init__(self):
+    def __init__(self, enable=False):
         self.succesful_flash_time = 0.5 # segundos
         self.error_flash_time = 2 # segundos
         self.flash = machine.Pin(4, machine.Pin.OUT)
+        self.enable = enable
     
     def successful(self):
         """
         Este metodo genera un parpadero en el flash que tiene una duracion de <self.succesful_flash_time> segundos.
         """
-        
-        self.flash.on()
-        time.sleep(self.succesful_flash_time)
-        self.flash.off()
+        if (self.enable):
+            self.flash.on()
+            time.sleep(self.succesful_flash_time)
+            self.flash.off()
 
     def error(self):
         """
         Este metodo genera un parpadero en el flash que tiene una duracion de <self.error_flash_time> segundos.
         """
-
-        self.flash.on()
-        time.sleep(self.error_flash_time)
-        self.flash.off()
+        if (self.enable):
+            self.flash.on()
+            time.sleep(self.error_flash_time)
+            self.flash.off()
 
 class SearchNewFirmwareOnSD:
     """

@@ -27,17 +27,8 @@ timeout_to_send_payload = manager_config.load_config('app_config')['timeout_to_s
 
 ######################## GLOBAL CONSTANTS #########################
 
-CLIENT_ID = manager_config.load_config('wifi_config')['MAC_address']
+CLIENT_ID = manager_config.load_config('wifi_config')['MAC_address'] #La constante del archivo mqtt tiene el mismo valor
 IP = manager_config.load_config('mqtt_config')['server']
-
-######################## CHECK CLIENT ID ##########################
-
-if not CLIENT_ID:
-    unique_id = machine.unique_id()
-    list_mac = [x for x in str(unique_id) if x.isalpha() or x.isdigit()]
-    str_mac = ''.join(list_mac)
-    manager_config.save_config('MAC_address', str_mac)
-    CLIENT_ID = str_mac
     
 ############################## MAIN ##############################
 
@@ -133,7 +124,7 @@ def start_main():
             if uart_message and 'generate_token' in uart_message:
                 token_generator = Token()
                 token = token_generator.generate_token()
-                await client.publish(mqtt.PUB_TOPIC_TOKEN, "{}:{}".format(CLIENT_ID, token), qos = 1)
+                await client.publish(mqtt.PUB_TOPIC_TOKEN, "{}:{}".format(CLIENT_ID, str(token)), qos = 1)
                 printer_contrl.print_on_screen('Token: {}'.format(token))
                 
             if mqtt_message_handler.working:

@@ -15,7 +15,17 @@ from app.current.CamController import CamController
 
 ########################### JSON CONFIG ###########################
 
-UUID = Config().load_config('wifi_config')['MAC_address']
+manager_config = Config()
+
+if not manager_config.load_config('wifi_config')['MAC_address']:
+    unique_id = machine.unique_id()
+    list_mac = [x for x in str(unique_id) if x.isalpha() or x.isdigit()]
+    str_mac = ''.join(list_mac)
+    manager_config.save_config('MAC_address', str_mac)
+    UUID = str_mac
+    
+else:
+    UUID = manager_config.load_config('wifi_config')['MAC_address']
 
 ########################## TOPIC DIAGRAM ##########################
 
@@ -41,7 +51,7 @@ UUID = Config().load_config('wifi_config')['MAC_address']
 
 ########################## PUBLISH TOPICS ##########################
 
-PUB_TOPIC_DATA = UUID + '/data_test'
+PUB_TOPIC_DATA = UUID + '/data_3.0.2'
 PUB_TOPIC_ACK_MARLIN = UUID + '/ack/marlin'  
 PUB_TOPIC_ACK_ESP = UUID + '/ack/esp'  
 PUB_TOPIC_ACK_PHOTO = UUID + '/ack/photo'  

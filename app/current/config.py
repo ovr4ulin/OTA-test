@@ -34,11 +34,17 @@ class Config:
                 config = json.load(json_file)
                 
                 if key is None:
+                    #No se especifico key
                     result = config
                 
                 else:
                     if key in config.keys():
-                        result = config[key]                                                                                              
+                        #Se especifico key y existe
+                        result = config[key]
+                        
+                    else:
+                        #Se especifico key y NO existe
+                        result = None                                                                                              
         
         except Exception as e:
             print(">>> ERROR ocurred while trying to read config.json file: " + str(e))  
